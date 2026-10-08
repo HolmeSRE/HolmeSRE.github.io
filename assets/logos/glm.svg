@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 158 159">
+  <title>Z icon</title>
+  <rect width="158" height="159" rx="24" fill="#151717"/>
+  <g fill="#fff">
+    <path d="M27.5 33H82L72 46.5H27.5Z"/>
+    <path d="M90 33H133.5L68.5 125.5H25Z"/>
+    <path d="M88 112H131V125.5H76.5L84 115A5.5 5.5 0 0 1 88 112Z"/>
+  </g>
+</svg>

@@ -1,0 +1,246 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="250" height="280" viewBox="0 0 500 560">
+  <defs>
+    <linearGradient id="gOutline" x1="0" y1="0" x2="0.4" y2="1">
+      <stop offset="0" stop-color="#465060"/>
+      <stop offset="1" stop-color="#323843"/>
+    </linearGradient>
+    <linearGradient id="gCoat" x1="0" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#93A3AD"/>
+      <stop offset="1" stop-color="#6E7E89"/>
+    </linearGradient>
+    <linearGradient id="gCoatDark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5E6976"/>
+      <stop offset="1" stop-color="#454E5A"/>
+    </linearGradient>
+    <linearGradient id="gFlap" x1="0" y1="0" x2="0.6" y2="1">
+      <stop offset="0" stop-color="#94A4AE"/>
+      <stop offset="1" stop-color="#6D7D88"/>
+    </linearGradient>
+    <linearGradient id="gCape" x1="0.2" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#9EADB7"/>
+      <stop offset="1" stop-color="#74848F"/>
+    </linearGradient>
+    <linearGradient id="gCollar" x1="0" y1="0" x2="1" y2="0.3">
+      <stop offset="0" stop-color="#687884"/>
+      <stop offset="1" stop-color="#8495A0"/>
+    </linearGradient>
+    <linearGradient id="gShade" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5D6874"/>
+      <stop offset="1" stop-color="#48525E"/>
+    </linearGradient>
+
+    <radialGradient id="gHat" cx="0.62" cy="0.18" r="0.95">
+      <stop offset="0" stop-color="#B3C0C9"/>
+      <stop offset="0.55" stop-color="#8E9DA8"/>
+      <stop offset="1" stop-color="#6F7F8B"/>
+    </radialGradient>
+    <linearGradient id="gHatSide" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6B7884"/>
+      <stop offset="1" stop-color="#525D69"/>
+    </linearGradient>
+    <linearGradient id="gPeak" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#76848F"/>
+      <stop offset="1" stop-color="#4E5965"/>
+    </linearGradient>
+    <linearGradient id="gBow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8A98A3"/>
+      <stop offset="1" stop-color="#5E6A76"/>
+    </linearGradient>
+
+    <linearGradient id="gSkin" x1="0" y1="0" x2="0.6" y2="1">
+      <stop offset="0" stop-color="#F8DED5"/>
+      <stop offset="1" stop-color="#EDC1B5"/>
+    </linearGradient>
+    <linearGradient id="gBrimShadow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#B98584"/>
+      <stop offset="1" stop-color="#E4B8AF"/>
+    </linearGradient>
+    <linearGradient id="gHair" x1="0" y1="0" x2="0.3" y2="1">
+      <stop offset="0" stop-color="#E9806A"/>
+      <stop offset="1" stop-color="#C25A45"/>
+    </linearGradient>
+    <linearGradient id="gHairShade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#A9493B"/>
+      <stop offset="1" stop-color="#8F3D33"/>
+    </linearGradient>
+
+    <linearGradient id="gBowl" x1="0" y1="0" x2="1" y2="0.6">
+      <stop offset="0" stop-color="#F08467"/>
+      <stop offset="0.6" stop-color="#D45E45"/>
+      <stop offset="1" stop-color="#A9432F"/>
+    </linearGradient>
+    <linearGradient id="gRimWood" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#F59A80"/>
+      <stop offset="1" stop-color="#D86A50"/>
+    </linearGradient>
+    <radialGradient id="gEmber" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#FFB46B"/>
+      <stop offset="1" stop-color="#FF8A4C" stop-opacity="0"/>
+    </radialGradient>
+
+    <linearGradient id="gHand" x1="0" y1="0" x2="0.8" y2="1">
+      <stop offset="0" stop-color="#F7B7B1"/>
+      <stop offset="1" stop-color="#E48A86"/>
+    </linearGradient>
+    <linearGradient id="gThumb" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FBDAD3"/>
+      <stop offset="1" stop-color="#F2B2AA"/>
+    </linearGradient>
+    <linearGradient id="gCuff" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7C8995"/>
+      <stop offset="1" stop-color="#A3B0BB"/>
+    </linearGradient>
+
+    <linearGradient id="gFrame" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5A6473"/>
+      <stop offset="0.5" stop-color="#3E4652"/>
+      <stop offset="1" stop-color="#2F353F"/>
+    </linearGradient>
+    <linearGradient id="gBevel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#C3D0E1"/>
+      <stop offset="1" stop-color="#7486A2"/>
+    </linearGradient>
+    <radialGradient id="gGlass" cx="0.35" cy="0.3" r="0.85">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="0.5" stop-color="#E6F0F8"/>
+      <stop offset="1" stop-color="#BED2E3"/>
+    </radialGradient>
+    <linearGradient id="gHandle" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5C6675"/>
+      <stop offset="1" stop-color="#363D48"/>
+    </linearGradient>
+
+    <pattern id="tweed" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="3" height="3" fill="#1F2630" fill-opacity="0.07"/>
+      <rect x="3" y="3" width="3" height="3" fill="#1F2630" fill-opacity="0.07"/>
+    </pattern>
+
+    <path id="sCoat" d="M233,287 C210,298 180,312 151,315 C143,330 140,345 140,365 L156,395 L156,386 L180,381 C172,410 160,450 151,489 C158,505 170,513 190,518 L213,522 C218,460 226,400 233,287 Z"/>
+    <path id="sCoatDark" d="M179,376 C170,410 140,460 114,486 C95,478 70,455 55,438 L45,438 L40,512 L40,554 L213,554 L213,525 C190,520 165,510 159,502 C155,485 156,470 162,450 C170,430 180,400 184,381 Z"/>
+    <path id="sFlap" d="M80,293 C60,315 50,335 47,350 C55,400 72,440 90,463 L110,471 C120,460 130,448 136,436 L137,414 L131,406 C120,380 113,360 115,345 C117,330 122,320 126,317 Z"/>
+    <path id="sCape" d="M203,185 C175,195 150,208 130,220 C115,228 100,238 95,250 L95,272 C130,285 160,292 181,293 C200,292 220,285 233,272 C225,240 214,210 203,185 Z"/>
+    <path id="sCrown" d="M244,146 C238,104 262,64 314,56 C354,52 386,80 392,138 C360,150 290,154 244,146 Z"/>
+    <path id="sEarFlap" d="M251,94 C266,106 298,122 334,130 C337,139 328,146 312,148 C286,148 262,142 250,132 C245,120 246,106 251,94 Z"/>
+  </defs>
+
+  <path fill="url(#gOutline)" stroke="#373D48" stroke-width="4" stroke-linejoin="round" d="
+    M248,76 L232,96
+    C215,98 198,104 192,115 L192,139 L212,149
+    C185,165 160,185 144,199
+    C120,215 92,228 82,244 L77,282 L62,282
+    C52,295 46,305 45,315
+    C36,350 31,380 31,402
+    L27,554 L232,554 L232,473 L247,487 L317,487 L322,463 L314,460 L314,398
+    L247,387 L257,306 L292,296 C304,290 312,272 316,258 C319,249 325,244 332,242 L332,220
+    C345,215 352,205 358,198 L367,187
+    C385,190 400,190 410,186 L392,140
+    C386,96 364,62 316,58 C286,58 262,64 248,76 Z"/>
+
+  <use href="#sCoat" fill="url(#gCoat)"/>
+  <use href="#sCoat" fill="url(#tweed)"/>
+  <path d="M226,300 C222,380 218,450 212,515" fill="none" stroke="#B3C1CA" stroke-width="3" stroke-linecap="round" stroke-opacity="0.55"/>
+
+  <use href="#sCoatDark" fill="url(#gCoatDark)"/>
+  <use href="#sCoatDark" fill="url(#tweed)"/>
+  <path d="M60,446 C78,462 96,476 112,490" fill="none" stroke="#7A8794" stroke-width="2.5" stroke-linecap="round" stroke-opacity="0.6"/>
+
+  <use href="#sFlap" fill="url(#gFlap)"/>
+  <use href="#sFlap" fill="url(#tweed)"/>
+  <path d="M74,306 C60,326 54,340 52,350" fill="none" stroke="#BAC7CF" stroke-width="3" stroke-linecap="round" stroke-opacity="0.6"/>
+  <path d="M96,352 C100,392 108,424 116,446" fill="none" stroke="#5F6E7A" stroke-width="2.5" stroke-linecap="round" stroke-opacity="0.45"/>
+
+  <use href="#sCape" fill="url(#gCape)"/>
+  <use href="#sCape" fill="url(#tweed)"/>
+  <path d="M199,192 C174,201 150,213 133,225 C120,234 106,243 102,252" fill="none" stroke="#C7D2D9" stroke-width="3.5" stroke-linecap="round" stroke-opacity="0.7"/>
+  <path d="M102,268 C134,280 162,286 182,286 C200,285 216,280 226,272" fill="none" stroke="#5E6D79" stroke-width="2.5" stroke-linecap="round" stroke-opacity="0.45"/>
+  <path d="M170,214 C166,236 164,258 166,282" fill="none" stroke="#5E6D79" stroke-width="2" stroke-linecap="round" stroke-opacity="0.35"/>
+
+  <path fill="url(#gCollar)" d="M211,168 C216,162 232,160 242,164 C258,195 274,245 282,283 L251,293 C243,250 228,205 211,168 Z"/>
+  <path d="M238,170 C252,200 266,242 274,278" fill="none" stroke="#A9B8C2" stroke-width="2.5" stroke-linecap="round" stroke-opacity="0.7"/>
+  <path fill="url(#gShade)" d="M83,274 L73,287 L133,319 L133,305 C120,298 100,288 83,274 Z"/>
+  <path fill="url(#gShade)" d="M153,312 C140,330 130,345 127,358 C135,375 142,390 148,401 L148,343 Z"/>
+
+  <path fill="url(#gSkin)" d="M300,156 C284,158 268,164 257,170 L256,194 C260,205 266,215 273,223 C300,218 325,208 341,199 C344,192 346,186 349,178 C340,168 324,158 300,156 Z"/>
+  <path fill="url(#gBrimShadow)" d="M298,150 C322,152 342,160 356,172 L350,184 C334,177 314,173 292,174 C289,166 292,156 298,150 Z"/>
+
+  <g stroke="#373D48" stroke-width="7" stroke-linejoin="round">
+    <path fill="url(#gHair)" d="M240,140 C262,134 288,138 308,148 C304,156 300,162 294,166 C282,166 270,168 258,174 C252,176 248,180 246,186 C238,178 234,168 233,158 C233,150 236,144 240,140 Z"/>
+  </g>
+  <path fill="url(#gHairShade)" d="M242,142 C262,137 286,140 304,149 C298,152 290,153 282,152 C266,148 252,148 240,152 Z"/>
+  <g fill="none" stroke-linecap="round">
+    <path d="M244,160 C256,155 272,153 290,154" stroke="#F8AE94" stroke-width="2.5" stroke-opacity="0.9"/>
+    <path d="M243,170 C252,164 264,161 278,160" stroke="#F8AE94" stroke-width="2" stroke-opacity="0.7"/>
+    <path d="M262,166 C272,162 282,161 292,161" stroke="#B04C3C" stroke-width="2" stroke-opacity="0.6"/>
+  </g>
+
+  <g stroke="#373D48" stroke-width="8" stroke-linejoin="round" stroke-linecap="round">
+    <path fill="url(#gPeak)" d="M250,116 C232,111 212,111 199,117 C192,121 191,130 198,135 C212,143 232,147 252,147 Z"/>
+    <path fill="url(#gPeak)" d="M360,135 C383,137 405,150 417,168 C420,175 415,180 408,179 C388,177 368,167 352,154 Z"/>
+    <use href="#sCrown" fill="url(#gHat)"/>
+  </g>
+  <use href="#sCrown" fill="url(#tweed)"/>
+  <g fill="none" stroke-linecap="round">
+    <path d="M205,126 C219,132 235,136 249,138" stroke="#2F3640" stroke-width="2" stroke-dasharray="3 4" stroke-opacity="0.55"/>
+    <path d="M366,147 C383,152 398,161 408,171" stroke="#2F3640" stroke-width="2" stroke-dasharray="3 4" stroke-opacity="0.55"/>
+    <path d="M362,140 C380,143 396,151 406,160" stroke="#9AA8B3" stroke-width="2" stroke-opacity="0.7"/>
+    <path d="M316,58 C330,82 340,110 346,146" stroke="#4E5965" stroke-width="2.5" stroke-opacity="0.55"/>
+    <path d="M316,58 C350,72 372,100 382,138" stroke="#4E5965" stroke-width="2" stroke-opacity="0.35"/>
+    <path d="M326,64 C346,70 364,86 374,108" stroke="#DDE5EA" stroke-width="4" stroke-opacity="0.75"/>
+    <path d="M248,140 C290,148 350,146 390,132" stroke="#4E5965" stroke-width="2.5" stroke-opacity="0.5"/>
+  </g>
+  <use href="#sEarFlap" fill="url(#gHatSide)" stroke="#373D48" stroke-width="6" stroke-linejoin="round"/>
+  <use href="#sEarFlap" fill="url(#tweed)"/>
+  <path d="M256,108 C270,118 296,130 326,136 C318,142 296,142 276,138 C266,134 258,126 256,108" fill="none" stroke="#C3CED6" stroke-width="1.8" stroke-dasharray="3 3.5" stroke-linecap="round" stroke-opacity="0.75"/>
+  <path d="M270,106 C276,86 292,66 312,52" fill="none" stroke="#373D48" stroke-width="4" stroke-linecap="round"/>
+
+  <g stroke="#373D48" stroke-width="6" stroke-linejoin="round" stroke-linecap="round">
+    <path fill="url(#gBow)" d="M313,48 C306,38 296,32 292,37 C288,44 300,51 313,50 Z"/>
+    <path fill="url(#gBow)" d="M323,48 C330,37 342,34 345,40 C348,47 336,52 323,50 Z"/>
+    <ellipse cx="318" cy="49" rx="6" ry="5" fill="#5E6A76"/>
+  </g>
+  <path d="M297,38 C302,39 307,42 310,46 M327,44 C332,40 337,39 341,40" fill="none" stroke="#B8C5CE" stroke-width="1.8" stroke-linecap="round" stroke-opacity="0.8"/>
+
+  <line x1="332" y1="208" x2="386" y2="254" stroke="#373D48" stroke-width="17" stroke-linecap="round"/>
+  <line x1="332" y1="208" x2="386" y2="254" stroke="#3C3C47" stroke-width="8" stroke-linecap="round"/>
+  <line x1="338" y1="210" x2="372" y2="239" stroke="#7A7A88" stroke-width="2" stroke-linecap="round"/>
+  <line x1="365" y1="245" x2="374" y2="234" stroke="#373D48" stroke-width="7" stroke-linecap="round"/>
+  <line x1="365" y1="245" x2="374" y2="234" stroke="#D5DDE4" stroke-width="3" stroke-linecap="round"/>
+  <path fill="url(#gBowl)" stroke="#373D48" stroke-width="7" stroke-linejoin="round" d="M377,232 L415,232 C415,256 409,272 396,274 C383,272 377,256 377,232 Z"/>
+  <ellipse cx="396" cy="232" rx="19" ry="5.5" fill="url(#gRimWood)" stroke="#373D48" stroke-width="5"/>
+  <ellipse cx="396" cy="232.5" rx="12.5" ry="3" fill="#3A2622"/>
+  <ellipse cx="396" cy="232.5" rx="9" ry="2.2" fill="url(#gEmber)"/>
+  <path d="M385,241 C385,254 388,263 393,268" fill="none" stroke="#FFC0AA" stroke-width="2.6" stroke-linecap="round" stroke-opacity="0.8"/>
+  <path d="M407,242 C407,254 404,262 400,267" fill="none" stroke="#8E3626" stroke-width="2" stroke-linecap="round" stroke-opacity="0.5"/>
+
+  <line x1="381" y1="403" x2="334" y2="444" stroke="#373D48" stroke-width="24" stroke-linecap="round"/>
+  <line x1="381" y1="403" x2="334" y2="444" stroke="url(#gHandle)" stroke-width="13" stroke-linecap="round"/>
+  <line x1="378" y1="400" x2="352" y2="423" stroke="#7E8999" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="387" y1="398" x2="374" y2="410" stroke="#373D48" stroke-width="28" stroke-linecap="round"/>
+  <line x1="387" y1="398" x2="374" y2="410" stroke="url(#gBevel)" stroke-width="18" stroke-linecap="round"/>
+  <g transform="rotate(-40 436 356)">
+    <ellipse cx="436" cy="356" rx="70" ry="54" fill="url(#gFrame)" stroke="#373D48" stroke-width="4"/>
+    <path d="M378,338 C388,318 412,308 440,308 C462,309 480,316 490,326" fill="none" stroke="#7A8595" stroke-width="3" stroke-linecap="round" stroke-opacity="0.8"/>
+    <ellipse cx="436" cy="356" rx="58" ry="42" fill="url(#gBevel)" stroke="#2F353F" stroke-width="2.5"/>
+    <ellipse cx="432" cy="352" rx="49" ry="34" fill="url(#gGlass)" stroke="#6D7F9A" stroke-width="2"/>
+    <path d="M392,346 C396,331 412,321 434,319" fill="none" stroke="#FFFFFF" stroke-width="5.5" stroke-linecap="round"/>
+    <circle cx="449" cy="321" r="3" fill="#FFFFFF"/>
+    <path d="M418,378 C440,384 462,376 474,362" fill="none" stroke="#A9C0D5" stroke-width="2.5" stroke-linecap="round" stroke-opacity="0.8"/>
+  </g>
+
+  <path fill="url(#gCuff)" stroke="#373D48" stroke-width="6" stroke-linejoin="round" d="M305,401 L322,400 L322,458 L305,459 Z"/>
+  <path d="M310,406 L310,453" fill="none" stroke="#C5CFD8" stroke-width="2" stroke-linecap="round" stroke-opacity="0.8"/>
+  <path fill="url(#gHand)" stroke="#373D48" stroke-width="7" stroke-linejoin="round" d="M320,404 C332,400 346,401 354,406 L356,457 C344,459 330,459 320,458 Z"/>
+  <g fill="url(#gHand)" stroke="#373D48" stroke-width="4.5">
+    <rect x="336" y="441" width="31" height="14" rx="7"/>
+    <rect x="337" y="429" width="33" height="14" rx="7"/>
+    <rect x="337" y="417" width="34" height="14" rx="7"/>
+  </g>
+  <g fill="none" stroke="#FBD0CA" stroke-width="2" stroke-linecap="round" stroke-opacity="0.8">
+    <path d="M345,421 L362,421"/>
+    <path d="M345,433 L361,433"/>
+    <path d="M344,445 L358,445"/>
+  </g>
+  <path fill="url(#gThumb)" stroke="#373D48" stroke-width="4.5" stroke-linejoin="round" d="M324,411 C334,403 352,403 368,408 C375,411 375,419 368,421 L332,421 C326,420 322,415 324,411 Z"/>
+  <path d="M362,410 C366,411 368,414 367,417" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-opacity="0.8"/>
+  <path d="M326,430 C330,436 330,446 326,452" fill="none" stroke="#C86E6B" stroke-width="2" stroke-linecap="round" stroke-opacity="0.5"/>
+</svg>

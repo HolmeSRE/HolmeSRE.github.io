@@ -1,0 +1,1132 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#ffffff" />
+    <title>HolmeSRE: Demystifying Scheduling Failures in Hyperscale Clusters with an Agentic Troubleshooter</title>
+    <meta
+      name="description"
+      content="An empirical study of 169 scheduling failures in a production hyperscale MLaaS platform at Alibaba Group, and HolmeSRE, a 4B agentic troubleshooter that matches 2.4T flagship models at 16× lower latency."
+    />
+    <meta property="og:title" content="HolmeSRE: Demystifying Scheduling Failures in Hyperscale Clusters with an Agentic Troubleshooter" />
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:description"
+      content="Why scheduling fails at hyperscale, and how a 4B agent learns to troubleshoot it like an SRE. Interactive findings, method walkthrough, and results."
+    />
+    <meta property="og:image" content="assets/figs/overview.png" />
+    <meta name="citation_title" content="HolmeSRE: Demystifying Scheduling Failures in Hyperscale Clusters with an Agentic Troubleshooter" />
+    <meta name="citation_publication_date" content="2026" />
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <link rel="preload" href="assets/fonts/dm-sans-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="assets/fonts/noto-sans.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="assets/data/case.js" defer></script>
+    <script src="app.js" defer></script>
+    <script src="viz.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="reading-progress" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <div class="nav-inner wide">
+        <a class="brand" href="#top">
+          <img src="assets/logos/HolmeSRE.png" alt="" width="30" height="30" />
+          <span>HolmeSRE</span>
+        </a>
+        <nav class="main-nav" aria-label="Main navigation">
+          <a href="#motivation">Motivation</a>
+          <a href="#study">Study</a>
+          <a href="#haystack">Case</a>
+          <a href="#design">Design</a>
+          <a href="#method">Method</a>
+          <a href="#effectiveness">Experiment</a>
+          <a href="#deployment">Deployment</a>
+          <a href="#lessons">Lessons</a>
+          <a href="#conclusion">Conclusion</a>
+        </nav>
+        <button class="menu-toggle" aria-label="Open navigation" aria-expanded="false" aria-controls="mobile-nav">
+          <span></span><span></span>
+        </button>
+      </div>
+      <nav id="mobile-nav" class="mobile-nav" aria-label="Mobile navigation" hidden>
+        <a href="#motivation">Motivation</a>
+        <a href="#study">Empirical Study</a>
+        <a href="#haystack">Sanitized Case</a>
+        <a href="#design">Design</a>
+        <a href="#method">Method</a>
+        <a href="#effectiveness">Experiment</a>
+        <a href="#deployment">Deployment</a>
+        <a href="#lessons">Lessons</a>
+        <a href="#conclusion">Conclusion</a>
+      </nav>
+    </header>
+
+    <nav id="side-toc" class="side-toc" aria-label="Page contents">
+      <p class="side-toc-title">ON THIS PAGE</p>
+      <a href="#motivation">Motivation</a>
+      <a href="#study">Empirical Study</a>
+      <a href="#haystack">Sanitized Case</a>
+      <a href="#design">Findings → Design</a>
+      <a href="#method">Method</a>
+      <a href="#effectiveness">Experiment</a>
+      <a href="#effectiveness" class="side-toc-child">Effectiveness</a>
+      <a href="#efficiency" class="side-toc-child">Efficiency</a>
+      <a href="#ablation" class="side-toc-child">Ablation</a>
+      <a href="#deployment">Deployment</a>
+      <a href="#lessons">Lessons Learned</a>
+      <a href="#conclusion">Conclusion</a>
+    </nav>
+
+    <main id="main">
+      <section id="top" class="paper-hero wide" aria-labelledby="paper-title">
+        <div class="hero-grid">
+          <div class="hero-intro">
+            <h1 id="paper-title">
+              <span class="gradient-text">HolmeSRE</span>: Demystifying Scheduling Failures in Hyperscale Clusters with an Agentic Troubleshooter
+            </h1>
+            <blockquote class="hero-quote">
+              The ideal reasoner would, when he had once been shown a single fact in all its bearings, deduce from it not only all
+              the chain of events which led up to it but also all the results which would follow from it.
+              <cite>— Arthur Conan Doyle, <em>The Five Orange Pips</em></cite>
+            </blockquote>
+          </div>
+
+          <div class="hero-summary-block">
+            <p class="hero-tldr">
+              <strong>A 4B agent that troubleshoots like an SRE.</strong>
+              HolmeSRE retrieves scheduling context, establishes local facts with deterministic checks, and correlates them into a
+              root cause. On real production failures it matches 2.4T flagship models while answering in seconds.
+            </p>
+            <figure class="hero-evidence" aria-labelledby="hero-caption">
+              <div class="hero-results">
+                <div>
+                  <strong><span class="num" data-count="92.88" data-decimals="2">92.88</span><span>%</span></strong>
+                  <span>Macro-F1 on 332 held-out<br />real failures</span>
+                </div>
+                <div>
+                  <strong><span class="num" data-count="16" data-decimals="0">16</span><span>×</span></strong>
+                  <span>Lower latency than<br />2.4T flagship models</span>
+                </div>
+                <div>
+                  <strong><span class="num" data-count="5.8" data-decimals="1">5.8</span><span>×</span></strong>
+                  <span>Faster SRE troubleshooting<br />in production</span>
+                </div>
+                <div>
+                  <strong><span class="num" data-count="100" data-decimals="0">100</span><span>%</span></strong>
+                  <span>Root causes identified by<br />HolmeSRE-assisted SREs</span>
+                </div>
+              </div>
+              <figcaption id="hero-caption">
+                HolmeSRE-4B, trained only on synthesized failures. Accuracy and latency are measured on Platform-X events; the speedup
+                and identification rate come from a one-month production deployment (94 sampled events).
+              </figcaption>
+            </figure>
+          </div>
+        </div>
+
+        <details class="paper-abstract">
+          <summary>Abstract</summary>
+          <div class="paper-abstract-content">
+            <p>
+              Hyperscale ML clusters increasingly encounter scheduling failures, where task placement becomes infeasible under coupled
+              resource availability and scheduling policies, leading to prolonged queueing and substantial operator toil. We study 169
+              confirmed failure reports from Aug.–Dec. 2025 in Platform-X, a production MLaaS platform at Alibaba Group managing 6,700+
+              heterogeneous GPUs. Our analysis shows that scheduling-policy induced infeasibility is the most prevalent failure category
+              and that diagnosis requires correlating heterogeneous, large-scale context artifacts, with frequent recurrence exacerbating
+              the operational burden. Current practice remains manual and difficult to scale. Motivated by these findings, we propose
+              <em>HolmeSRE</em>, an automated troubleshooter that iteratively retrieves context, establishes local facts via
+              deterministic checks, and correlates them to identify root causes. <em>HolmeSRE</em> controls tool interaction via action
+              abstraction, learns procedural investigation from synthesized trajectories, and aligns intermediate steps with a diagnostic
+              topology. On 332 held-out real failures, <em>HolmeSRE</em>-4B, trained only on synthesized failures, achieves 92.88%
+              Macro-F1, on par with 2.4T flagship models at 16× lower latency. In a one-month production deployment, SREs assisted by
+              <em>HolmeSRE</em> identified all root causes while troubleshooting 5.8× faster.
+            </p>
+          </div>
+        </details>
+
+        <div class="hero-workflow">
+          <figure id="loop" class="teaser" aria-label="The HolmeSRE troubleshooting loop">
+            <div class="teaser-heading">
+              <span class="teaser-label">THE HOLMESRE LOOP</span>
+              <span class="teaser-note">One failed scheduling event · two abstract actions · one root cause</span>
+            </div>
+            <div class="teaser-flow">
+              <div class="teaser-node">
+                <div class="teaser-node-head">
+                  <span class="node-index amber">01</span>
+                  <div>
+                    <h3>Retrieve</h3>
+                    <p>Fetch diagnostic context. Return compact logical keys, not raw payloads.</p>
+                  </div>
+                </div>
+                <div class="chip-row">
+                  <span class="k-chip">pod/spec</span><span class="k-chip">pod/request</span><span class="k-chip">quota</span>
+                </div>
+              </div>
+              <span class="flow-arrow" aria-hidden="true">→</span>
+              <div class="teaser-node">
+                <div class="teaser-node-head">
+                  <span class="node-index blue">02</span>
+                  <div>
+                    <h3>Diagnose</h3>
+                    <p>Run a deterministic SRE check. Each check returns one local fact.</p>
+                  </div>
+                </div>
+                <div class="chip-row">
+                  <span class="fact ok">Pod configuration is valid ✓</span><span class="fact bad">Quota Limitation ✗</span>
+                </div>
+              </div>
+              <span class="flow-arrow" aria-hidden="true">→</span>
+              <div class="teaser-node">
+                <div class="teaser-node-head">
+                  <span class="node-index rust">03</span>
+                  <div>
+                    <h3>Correlate</h3>
+                    <p>Infer the root cause from the joint evidence of local facts.</p>
+                  </div>
+                </div>
+                <div class="chip-row">
+                  <span class="verdict-chip">Quota Exceeded</span>
+                </div>
+              </div>
+            </div>
+            <div class="feedback-line" aria-hidden="true">
+              <span>↖</span>
+              <div></div>
+              <p>Repeat until the local facts jointly determine a root cause</p>
+              <div></div>
+              <span>↵</span>
+            </div>
+          </figure>
+        </div>
+      </section>
+
+      <section id="motivation" class="research-section" aria-labelledby="motivation-title">
+        <div class="wide">
+          <div class="section-intro reveal">
+            <div class="section-label"><span>01</span> MOTIVATION</div>
+            <h2 id="motivation-title">Why are scheduling failures hard to troubleshoot?</h2>
+            <p class="section-summary">
+              At hyperscale, a placement can be infeasible while GPUs sit idle. Finding out why means searching coupled constraints
+              across massive, heterogeneous context.
+            </p>
+          </div>
+
+          <div class="motivation-grid">
+            <figure class="paper-figure reveal">
+              <button
+                class="figure-zoom"
+                type="button"
+                data-lightbox="assets/figs/teaser.png"
+                data-caption="Figure 1. Scheduling failure management in Platform-X."
+                aria-label="Enlarge Figure 1"
+              >
+                <img src="assets/figs/teaser.png" alt="Scheduling failure management in Platform-X: users submit workloads, admission control blocks them with pre-execution scheduling failures, and SREs retrieve workload specs, resource states and scheduling-policy constraints to produce a failure report." loading="lazy" width="2122" height="1261" />
+              </button>
+              <figcaption>
+                <strong>Figure 1.</strong> Scheduling failure management in Platform-X. A failure blocks a workload before execution;
+                an SRE must retrieve workload specifications, resource states and scheduling-policy constraints, diagnose, and guide the
+                user to fix and resubmit.
+              </figcaption>
+            </figure>
+
+            <div class="reveal">
+              <div class="card def-card">
+                <span class="mini-label">Task formulation</span>
+                <div class="equation">
+                  <math display="block">
+                    <mi>𝒪</mi><mo>=</mo><mi>ℱ</mi><mo stretchy="false">(</mo><mi class="tag-r">ℛ</mi><mo>,</mo><mi class="tag-s">𝒮</mi><mo>,</mo
+                    ><mi class="tag-p">𝒫</mi><mo stretchy="false">)</mo>
+                  </math>
+                </div>
+                <p>
+                  The scheduler deterministically maps a <strong class="tag-r">workload specification</strong>, the
+                  <strong class="tag-s">cluster state</strong> and <strong class="tag-p">scheduling-policy constraints</strong> to a
+                  placement <span class="sym">𝒪</span>. A <em>scheduling failure</em> is <span class="sym">𝒪 = ⊥</span>.
+                </p>
+                <p>
+                  Diagnosis localizes a minimal subset <span class="sym">𝒞 ⊆ ℛ ∪ 𝒮 ∪ 𝒫</span> whose joint constraints make the
+                  placement impossible, e.g. a workload constraint that conflicts with a policy under the current state.
+                </p>
+              </div>
+              <div class="complexity-cards">
+                <div class="card complexity-card">
+                  <h4>
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="6" r="2.5" /><circle cx="18" cy="6" r="2.5" /><circle cx="12" cy="18" r="2.5" /><path d="M8 7.5 10.8 16M16 7.5 13.2 16M8.5 6h7" /></svg>
+                    Logical complexity
+                  </h4>
+                  <p>Schedulability emerges from interacting resource and policy constraints whose dependencies and evolution make root-cause attribution hard.</p>
+                </div>
+                <div class="card complexity-card">
+                  <h4>
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5.5" rx="7" ry="2.5" /><path d="M5 5.5v6c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5v-6M5 11.5v6c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5v-6" /></svg>
+                    Data complexity
+                  </h4>
+                  <p>The decision context of one event is spread across large volumes of specifications, cluster states and policy configurations.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="compare-table-wrap card reveal">
+            <table class="compare-table">
+              <caption class="sr-only">Scheduling failure diagnosis compared with runtime failure diagnosis</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Dimension</th>
+                  <th scope="col">Runtime failure diagnosis</th>
+                  <th scope="col">Scheduling failure diagnosis</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th scope="row">Lifecycle phase</th>
+                  <td>Execution<small>Dynamic anomalies while the workload runs</small></td>
+                  <td>Admission<small>Feasibility is decided before execution by static resource and policy constraints</small></td>
+                </tr>
+                <tr>
+                  <th scope="row">Evidence</th>
+                  <td>Observability signals<small>Logs and metrics</small></td>
+                  <td>Captured scheduling context<small>Workload spec, cluster-state snapshot, policy configuration</small></td>
+                </tr>
+                <tr>
+                  <th scope="row">Paradigm</th>
+                  <td>Probabilistic<small>Black-box statistical attribution</small></td>
+                  <td>Deterministic<small>White-box, constraint-based reasoning that can be verified</small></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="question-block reveal">
+            <span class="question-eyebrow">THE QUESTION</span>
+            <h3>Can an agent <span>reason from evidence</span> the way an SRE does?</h3>
+            <svg class="down-arrow" viewBox="0 0 24 30" aria-hidden="true"><path d="M12 2v24m-7-7 7 7 7-7" /></svg>
+          </div>
+        </div>
+      </section>
+
+      <section id="study" class="research-section tinted" aria-labelledby="study-title">
+        <div class="wide">
+          <div class="section-intro reveal">
+            <div class="section-label"><span>02</span> EMPIRICAL STUDY</div>
+            <h2 id="study-title">What do 169 real scheduling failures reveal?</h2>
+            <p class="section-summary">
+              Confirmed failure reports from Platform-X, a production MLaaS platform at Alibaba Group, each with a definitive root cause
+              cross-checked by SREs.
+            </p>
+          </div>
+
+          <div class="card study-strip reveal">
+            <div><strong>169</strong><span>Confirmed failed scheduling events</span></div>
+            <div><strong>Aug–Dec 2025</strong><span>Study window</span></div>
+            <div><strong>6,700+</strong><span>Heterogeneous GPUs (H20, V100, …)</span></div>
+            <div><strong>4 SREs</strong><span>Independent annotation and adjudication</span></div>
+          </div>
+
+          <div class="tabs-row reveal">
+            <div class="tabs" role="tablist" aria-label="Empirical questions">
+              <button role="tab" id="tab-eq1" aria-controls="panel-eq1" aria-selected="true"><span class="tab-k">EQ1</span>Failure landscape</button>
+              <button role="tab" id="tab-eq2" aria-controls="panel-eq2" aria-selected="false" tabindex="-1"><span class="tab-k">EQ2</span>Root-cause patterns</button>
+              <button role="tab" id="tab-eq3" aria-controls="panel-eq3" aria-selected="false" tabindex="-1"><span class="tab-k">EQ3</span>Diagnostic data</button>
+              <button role="tab" id="tab-eq4" aria-controls="panel-eq4" aria-selected="false" tabindex="-1"><span class="tab-k">EQ4</span>Manual burden</button>
+            </div>
+          </div>
+
+          <div role="tabpanel" id="panel-eq1" aria-labelledby="tab-eq1">
+            <div class="panel-grid">
+              <div class="donut-wrap">
+                <svg id="donut" viewBox="0 0 320 320" role="img" aria-label="Donut chart of scheduling failure types: Scheduling Policy Blockage 45.6%, Resource Provisioning Shortfall 33.1%, Scheduling Intent Irregularity 21.3%."></svg>
+                <div class="donut-center" aria-hidden="true"><strong id="donut-value">169</strong><span id="donut-label">failed scheduling events</span></div>
+              </div>
+              <div id="type-list" class="type-list"></div>
+            </div>
+            <div class="finding">
+              <span class="finding-tag">Finding 1</span>
+              <p><strong>Scheduling Policy Blockage (45.6%)</strong> outnumbers resource shortfalls: constraint satisfaction, not raw capacity, is the primary bottleneck to schedulability in hyperscale clusters.</p>
+            </div>
+          </div>
+
+          <div role="tabpanel" id="panel-eq2" aria-labelledby="tab-eq2" hidden>
+            <div class="taxonomy">
+              <div id="tax-columns" class="tax-columns"></div>
+              <div id="tax-detail" class="card tax-detail" aria-live="polite"></div>
+            </div>
+            <div class="finding">
+              <span class="finding-tag">Finding 2</span>
+              <p>Isolation constraints <strong>shrink the feasible placement space</strong>, rendering healthy capacity logically unreachable and turning it into artificial scheduling bottlenecks.</p>
+            </div>
+          </div>
+
+          <div role="tabpanel" id="panel-eq3" aria-labelledby="tab-eq3" hidden>
+            <div class="artifact-grid">
+              <div class="card artifact" style="--c: var(--intent); --bg: var(--intent-bg)">
+                <div class="a-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l4 4v14H7zM14 3v4h4M10 12h5M10 16h5" /></svg></div>
+                <span class="a-side">Demand</span>
+                <h4>Workload specifications</h4>
+                <p>Resource requests and limits, affinity rules, tolerations and QoS priorities of the submitted task instances.</p>
+              </div>
+              <div class="card artifact" style="--c: var(--intent); --bg: var(--intent-bg)">
+                <div class="a-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" /><path d="M12 4v8l5.5 5.5" /></svg></div>
+                <span class="a-side">Governance</span>
+                <h4>Namespace quotas</h4>
+                <p>Consumption against pre-allocated namespace limits; separates physical shortages from admission rejections.</p>
+              </div>
+              <div class="card artifact" style="--c: var(--resource); --bg: var(--resource-bg)">
+                <div class="a-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="6" rx="1.5" /><rect x="4" y="14" width="16" height="6" rx="1.5" /><path d="M8 7h.01M8 17h.01" /></svg></div>
+                <span class="a-side">Supply</span>
+                <h4>Cluster states</h4>
+                <p>Node health, heterogeneous hardware, dynamic availability, and node attributes used for workload–node matching.</p>
+              </div>
+              <div class="card artifact" style="--c: var(--policy); --bg: var(--policy-bg)">
+                <div class="a-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2.2" /><circle cx="5" cy="18" r="2.2" /><circle cx="19" cy="18" r="2.2" /><path d="M12 7.2v4.3M12 11.5 6.4 16.3M12 11.5l5.6 4.8" /></svg></div>
+                <span class="a-side">Orchestration</span>
+                <h4>Federation policies</h4>
+                <p>Cross-cluster distribution ratios and propagation strategies; required to diagnose cross-domain unschedulability.</p>
+              </div>
+            </div>
+            <div class="card complexity-strip">
+              <div><span>Scale</span><strong>1.0×10<sup>7</sup></strong><small>Total characters per event</small></div>
+              <div><span>Scale</span><strong>2.7×10<sup>5</sup></strong><small>Total leaf nodes per event</small></div>
+              <div><span>Structure</span><strong>14.9</strong><small>Max nesting depth</small></div>
+              <div><span>Structure</span><strong>2,000</strong><small>Max array length</small></div>
+            </div>
+            <div class="finding">
+              <span class="finding-tag">Finding 3</span>
+              <p>Diagnostic context is <strong>massive and deeply nested</strong> (~10<sup>7</sup> characters, ~15 levels), leaving decisive evidence sparse and scattered among hundreds of thousands of leaf nodes.</p>
+            </div>
+            <a class="inline-cta" href="#haystack">Open a sanitized event in the explorer ↓</a>
+          </div>
+
+          <div role="tabpanel" id="panel-eq4" aria-labelledby="tab-eq4" hidden>
+            <div class="card journey" id="journey">
+              <div class="journey-head">
+                <h4>The average life of a failure report</h4>
+                <span>Minutes from report to root cause</span>
+              </div>
+              <div class="journey-track" role="img" aria-label="Average queueing latency 40.71 minutes followed by 13.67 minutes of hands-on troubleshooting.">
+                <div class="journey-seg queue">Waiting in queue · 40.71 min</div>
+                <div class="journey-seg hands">Hands-on · 13.67 min</div>
+              </div>
+              <div class="journey-axis" aria-hidden="true">
+                <span style="left: 0%">0</span><span style="left: 18.39%">10</span><span style="left: 36.78%">20</span
+                ><span style="left: 55.17%">30</span><span style="left: 73.56%">40</span><span style="left: 100%">54.38 min</span>
+              </div>
+              <div class="journey-legend">
+                <span><i style="background: #d6b09b"></i>Queueing: the report waits for an available SRE</span>
+                <span><i style="background: var(--rust)"></i>Hands-on troubleshooting by an SRE</span>
+              </div>
+            </div>
+            <div class="burden-tiles">
+              <div class="card burden-tile"><strong>13.67<small> min</small></strong><span>Mean hands-on troubleshooting time per event</span></div>
+              <div class="card burden-tile accent"><strong>~3<small>×</small></strong><span>Queueing (40.71 min) relative to hands-on time</span></div>
+              <div class="card burden-tile">
+                <div class="recur-ring">
+                  <svg id="recur-ring" viewBox="0 0 52 52" aria-hidden="true"><circle class="ring-bg" cx="26" cy="26" r="21" /><circle class="ring-fg" cx="26" cy="26" r="21" /></svg>
+                  <div><strong>66<small>%</small></strong></div>
+                </div>
+                <span>Failures recur with a root cause seen before</span>
+              </div>
+              <div class="card burden-tile"><strong>5+</strong><span>SREs on the team, yet the workflow runs near its throughput limit</span></div>
+            </div>
+            <div class="finding">
+              <span class="finding-tag">Finding 4</span>
+              <p><strong>SRE bandwidth</strong> is the bottleneck: queueing takes 40.71 minutes, 3× the hands-on time, and 66% of failures recur.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="haystack" class="research-section" aria-labelledby="haystack-title">
+        <div class="wide">
+          <div class="section-intro reveal">
+            <div class="section-label"><span>03</span> SANITIZED CASE</div>
+            <h2 id="haystack-title">What does an SRE read for a single failure?</h2>
+            <p class="section-summary">
+              The captured context of one failed scheduling event from Platform-X, with identifiers, field names and values
+              anonymized. Browse it, search it, and look for the needle.
+            </p>
+          </div>
+
+          <div class="card haystack-stats reveal" id="haystack-stats">
+            <div><strong data-case-stat="chars">–</strong><span>Characters of context</span></div>
+            <div><strong data-case-stat="leaves">–</strong><span>Leaf nodes to check</span></div>
+            <div><strong data-case-stat="depth">–</strong><span>Max nesting depth</span></div>
+            <div><strong data-case-stat="maxArray">–</strong><span>Nodes in the cluster snapshot</span></div>
+            <div><strong data-case-stat="pages">–</strong><span>Printed pages at 3,000 chars/page</span></div>
+          </div>
+
+          <div class="card explorer reveal">
+            <div class="artifact-list" id="hs-artifacts" role="tablist" aria-label="Diagnostic context artifacts"></div>
+            <div class="tree-pane">
+              <div class="tree-toolbar">
+                <label class="tree-search">
+                  <span class="sr-only">Search keys and values</span>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+                  <input id="tree-search" type="search" placeholder="Search keys or values, e.g. restrictions, accelerator, Status_1" autocomplete="off" />
+                </label>
+                <span class="match-count" id="match-count" aria-live="polite"></span>
+                <button class="tool-btn" id="tree-prev" type="button" disabled aria-label="Previous match">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
+                </button>
+                <button class="tool-btn" id="tree-next" type="button" disabled aria-label="Next match">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+                </button>
+                <button class="tool-btn" id="tree-collapse" type="button">Collapse all</button>
+              </div>
+              <div class="tree-path" id="tree-path" aria-live="polite">Hover a row to see its path</div>
+              <div class="tree" id="tree" role="tree" aria-label="Artifact JSON tree"></div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <section id="design" class="research-section tinted" aria-labelledby="design-title">
+        <div class="wide">
+          <div class="section-intro reveal">
+            <div class="section-label"><span>04</span> FROM FINDINGS TO DESIGN</div>
+            <h2 id="design-title">Three challenges for troubleshooting automation</h2>
+            <p class="section-summary">
+              Scheduling failure diagnosis is an admission-time, constraint-based task, so it is amenable to verifiable, tool-mediated
+              procedures over captured context. The findings expose what such automation must handle.
+            </p>
+          </div>
+          <div class="design-rows">
+            <div class="design-row reveal">
+              <div class="card challenge">
+                <span class="d-num">Challenge 1</span>
+                <h4>Explosion of the diagnostic search space</h4>
+                <p>Over 10 million characters nested about 15 levels deep; root causes are dispersed across nearly 270,000 leaf nodes.</p>
+                <span class="d-evidence">From Finding 3</span>
+              </div>
+              <div class="design-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12h15m-5-6 6 6-6 6" /></svg></div>
+              <div class="card response">
+                <span class="d-num">HolmeSRE · Action abstraction</span>
+                <h4>Keep raw payloads out of the context window</h4>
+                <p><code>Retrieve</code> fetches artifacts but returns only compact logical keys. Raw JSON is handled by tools, so the agent’s context stays small and controllable.</p>
+              </div>
+            </div>
+            <div class="design-row reveal">
+              <div class="card challenge">
+                <span class="d-num">Challenge 2</span>
+                <h4>Complexity of cross-domain correlation</h4>
+                <p>Root causes arise from coupled conditions across workload specs, quotas, cluster states and federation policies.</p>
+                <span class="d-evidence">From Findings 1–3</span>
+              </div>
+              <div class="design-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12h15m-5-6 6 6-6 6" /></svg></div>
+              <div class="card response">
+                <span class="d-num">HolmeSRE · Deterministic checks + topology</span>
+                <h4>Verify local facts, then correlate them</h4>
+                <p><code>Diagnosis</code> runs SRE check code and returns local facts. The agent decides which facts to establish, following the diagnostic topology from intent to resources to policy.</p>
+              </div>
+            </div>
+            <div class="design-row reveal">
+              <div class="card challenge">
+                <span class="d-num">Challenge 3</span>
+                <h4>Operational scalability and redundancy</h4>
+                <p>Queueing averages 40.71 minutes, nearly 3× the hands-on time, and 66% of failures recur with known root causes.</p>
+                <span class="d-evidence">From Finding 4</span>
+              </div>
+              <div class="design-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12h15m-5-6 6 6-6 6" /></svg></div>
+              <div class="card response">
+                <span class="d-num">HolmeSRE · Learned procedure</span>
+                <h4>A compact agent that answers in seconds</h4>
+                <p>A 4B model learns the troubleshooting procedure from synthesized expert trajectories and serves every reported event, so SREs review instead of queueing.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="method" class="research-section" aria-labelledby="method-title">
+        <div class="wide">
+          <div class="section-intro reveal">
+            <div class="section-label"><span>05</span> METHOD</div>
+            <h2 id="method-title">How does HolmeSRE troubleshoot?</h2>
+            <p class="section-summary">
+              Two abstract actions, a procedure distilled from synthesized expert trajectories, and preferences that keep intermediate
+              steps consistent with the diagnostic topology.
+            </p>
+          </div>
+
+          <figure class="paper-figure method-figure reveal">
+            <button
+              class="figure-zoom"
+              type="button"
+              data-lightbox="assets/figs/overview.png"
+              data-caption="Figure 3. Pipeline of HolmeSRE."
+              aria-label="Enlarge Figure 3"
+            >
+              <img src="assets/figs/overview.png" alt="HolmeSRE pipeline: diagnostic context artifacts, the agent framework with Retrieve and Diagnosis actions, investigation trajectory imitation learning, diagnostic topology preference learning with TM-DPO, and an example troubleshooting trace." loading="lazy" width="2111" height="985" />
+            </button>
+            <figcaption>
+              <strong>Figure 3.</strong> Pipeline of HolmeSRE. Upon a scheduling failure, the user reports the workload identifier;
+              HolmeSRE iteratively invokes retrieval and SRE diagnostic tools to obtain diagnostic context and applies deterministic
+              checks until the root cause is localized.
+            </figcaption>
+          </figure>
+
+          <div class="tabs-row method-tabs reveal">
+            <div class="tabs" role="tablist" aria-label="Method components">
+              <button role="tab" id="tab-m1" aria-controls="panel-m1" aria-selected="true"><span class="tab-k">01</span>Agent &amp; actions</button>
+              <button role="tab" id="tab-m2" aria-controls="panel-m2" aria-selected="false" tabindex="-1"><span class="tab-k">02</span>Trajectory imitation</button>
+              <button role="tab" id="tab-m3" aria-controls="panel-m3" aria-selected="false" tabindex="-1"><span class="tab-k">03</span>Topology preference</button>
+            </div>
+          </div>
+
+          <div role="tabpanel" id="panel-m1" aria-labelledby="tab-m1">
+            <div class="agent-grid">
+              <div>
+                <div class="card action-card retrieve">
+                  <header><code>Retrieve</code><h4>Logical Context Mechanism</h4></header>
+                  <p>
+                    Fetches the underlying artifact, such as a full cluster-state snapshot, but returns only a compact set of structured
+                    <em>logical keys</em> that reference relevant fields. Verbose JSON is deferred until a check needs it.
+                  </p>
+                  <div class="io">
+                    <div><span class="lbl">Input</span><span class="fn">retrieve</span>(data=[<span class="str">"pod_spec"</span>], pod_uid=<span class="str">"pod_abcd1234"</span>)</div>
+                    <div><span class="lbl">Output</span>{<span class="key">"logical_keys"</span>: [<span class="str">"pod/spec"</span>]}</div>
+                  </div>
+                </div>
+                <div class="card action-card diagnose">
+                  <header><code>Diagnosis</code><h4>Deterministic SRE checks</h4></header>
+                  <p>
+                    Given logical keys and a natural-language instruction, runs the check code SREs routinely use, e.g. comparing remaining
+                    quota with the request or computing the largest free GPU block, and returns a <em>local fact</em>, never a verdict.
+                  </p>
+                  <div class="io">
+                    <div><span class="lbl">Input</span><span class="fn">diagnosis</span>(keys=[<span class="str">"pod/spec"</span>], instruction=<span class="str">"Check whether the pod specification is valid."</span>)</div>
+                    <div><span class="lbl">Output</span><span class="str">"Pod configuration is valid"</span></div>
+                  </div>
+                </div>
+                <p class="agent-note">
+                  A local fact alone rarely determines the root cause: “no node can host the instance” is consistent with fragmentation,
+                  excessive reservation or global insufficiency. The agent decides which facts to establish and infers the root cause from
+                  their joint evidence.
+                </p>
+              </div>
+
+              <div class="card trace" id="trace">
+                <div class="trace-head">
+                  <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
+                  <span class="trace-tag">Example trajectory from Figure 3</span>
+                </div>
+                <div class="trace-body" id="trace-body" aria-live="polite"></div>
+                <div class="topo-progress" id="topo-progress" aria-label="Diagnostic topology progress">
+                  <span data-layer="intent">① Intent</span>
+                  <span data-layer="resource">② Resource</span>
+                  <span data-layer="policy">③ Policy</span>
+                </div>
+                <div class="player">
+                  <button class="tool-btn" id="trace-play" type="button" aria-label="Pause">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14" /></svg><span>Pause</span>
+                  </button>
+                  <button class="tool-btn" id="trace-next" type="button" aria-label="Next step">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 5 8 7-8 7M18 5v14" /></svg>
+                  </button>
+                  <button class="tool-btn" id="trace-replay" type="button" aria-label="Replay">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5" /></svg>
+                  </button>
+                  <div class="player-progress" aria-hidden="true"><span id="trace-progress"></span></div>
+                  <span class="player-count" id="trace-count">0 / 0</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div role="tabpanel" id="panel-m2" aria-labelledby="tab-m2" hidden>
+            <div class="pipeline">
+              <div class="card pipe-step">
+                <span class="p-num">STEP 1</span>
+                <h4>Healthy context</h4>
+                <p>Sample successful scheduling events from Platform-X production workloads.</p>
+                <span class="p-tag">No overlap with evaluation</span>
+              </div>
+              <div class="card pipe-step">
+                <span class="p-num">STEP 2</span>
+                <h4>Failure injection</h4>
+                <p>Modify constraints, e.g. tighten a quota, to trigger a known failure type. The forward direction is deterministic.</p>
+                <span class="p-tag">Ground truth known</span>
+              </div>
+              <div class="card pipe-step">
+                <span class="p-num">STEP 3</span>
+                <h4>Teacher rollouts</h4>
+                <p>Strong models diagnose the synthesized failures, producing Thought–Action–Observation trajectories.</p>
+                <span class="p-tag">Qwen3-235B-A22B · Qwen3-Max</span>
+              </div>
+              <div class="card pipe-step">
+                <span class="p-num">STEP 4</span>
+                <h4>Funnel filtering</h4>
+                <p>Validity control, correctness verification, and quality assessment with rules plus an LLM judge.</p>
+                <span class="p-tag">GPT-4o as judge</span>
+              </div>
+              <div class="card pipe-step hl">
+                <span class="p-num">STEP 5</span>
+                <h4>Imitation fine-tuning</h4>
+                <p>Distill the procedure into Qwen3-4B, supervising only the agent’s own thoughts and actions.</p>
+                <span class="p-tag">HolmeSRE-4B</span>
+              </div>
+            </div>
+
+            <div class="funnel-grid">
+              <div class="card funnel" id="funnel">
+                <span class="mini-label">Three-stage trajectory funnel</span>
+                <div class="funnel-bars">
+                  <div class="funnel-bar start" data-w="100"><b>Synthesized trajectories</b><strong>30K</strong></div>
+                  <div class="funnel-bar" data-w="88"><b>① Validity control</b><small>ReAct format · valid tool calls</small></div>
+                  <div class="funnel-bar" data-w="76"><b>② Correctness</b><small>Matches the injected fault</small></div>
+                  <div class="funnel-bar" data-w="64"><b>③ Quality</b><small>No loops · non-redundant · coherent</small></div>
+                  <div class="funnel-bar end" data-w="52"><b>Training trajectories</b><strong>12K</strong></div>
+                </div>
+              </div>
+              <div class="card mask-card">
+                <span class="mini-label">Loss masking in imitation fine-tuning</span>
+                <div class="token-row" aria-label="Example token sequence with loss mask">
+                  <span class="tok off">context</span>
+                  <span class="tok on">thought</span>
+                  <span class="tok on">retrieve(…)</span>
+                  <span class="tok off">observation</span>
+                  <span class="tok on">thought</span>
+                  <span class="tok on">diagnosis(…)</span>
+                  <span class="tok off">tool output</span>
+                  <span class="tok on">root cause</span>
+                </div>
+                <div class="eq">
+                  <math display="block">
+                    <msub><mi>ℒ</mi><mtext>IFT</mtext></msub><mo stretchy="false">(</mo><mi>θ</mi><mo stretchy="false">)</mo><mo>=</mo><mo>−</mo>
+                    <mfrac><mn>1</mn><mrow><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mi>L</mi></munderover><msub><mi>w</mi><mi>k</mi></msub></mrow></mfrac>
+                    <munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mi>L</mi></munderover>
+                    <msub><mi>w</mi><mi>k</mi></msub><mo>·</mo><mi>log</mi><mo>⁡</mo><msub><mi>P</mi><mi>θ</mi></msub><mo stretchy="false">(</mo><msub><mi>x</mi><mi>k</mi></msub><mo>∣</mo><msub><mi>𝐱</mi><mrow><mo>&lt;</mo><mi>k</mi></mrow></msub><mo stretchy="false">)</mo>
+                  </math>
+                </div>
+                <p>
+                  <strong>w<sub>k</sub> = 1</strong> only for agent-generated thoughts and actions; observations and raw tool outputs are
+                  masked out, so the model learns to act on environment feedback rather than memorize it.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div role="tabpanel" id="panel-m3" aria-labelledby="tab-m3" hidden>
+            <div class="topo-grid">
+              <div class="card ladder">
+                <span class="mini-label">Hierarchical diagnostic topology</span>
+                <div class="ladder-step" style="--c: var(--intent); --c2: var(--resource); --bg: var(--intent-bg)">
+                  <span class="l-num">1</span>
+                  <div>
+                    <h4>Intent validity</h4>
+                    <p>Decided by the workload specification and admission constraints alone, independent of the cluster state.</p>
+                    <div class="l-chips"><span>SV</span><span>QE</span></div>
+                  </div>
+                </div>
+                <div class="ladder-step" style="--c: var(--resource); --c2: var(--policy); --bg: var(--resource-bg)">
+                  <span class="l-num">2</span>
+                  <div>
+                    <h4>Resource feasibility</h4>
+                    <p>Can be evaluated only after intent validity is established.</p>
+                    <div class="l-chips"><span>RF</span><span>ER</span><span>CDU</span><span>GRI</span></div>
+                  </div>
+                </div>
+                <div class="ladder-step" style="--c: var(--policy); --bg: var(--policy-bg)">
+                  <span class="l-num">3</span>
+                  <div>
+                    <h4>Scheduling-policy compliance</h4>
+                    <p>The final layer; presupposes valid intent and sufficient physical capacity.</p>
+                    <div class="l-chips"><span>NSM</span><span>PAC</span><span>MTT</span><span>PNU</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <span class="mini-label">Rollouts of the imitation-learned model, partitioned by logic and outcome</span>
+                <div class="traj-cards">
+                  <div class="card traj">
+                    <span class="medal gold" aria-hidden="true">1st</span>
+                    <div>
+                      <h4>Logic <span class="ok">valid</span> · Outcome <span class="ok">correct</span></h4>
+                      <div class="traj-path"><span class="s-ok">Intent ✓</span><i>→</i><span class="s-ok">Resource ✓</span><i>→</i><span class="s-end">Policy: PAC</span></div>
+                    </div>
+                    <span class="lambda-tag">Preferred trajectory <em>y<sub>p</sub></em></span>
+                  </div>
+                  <div class="card traj">
+                    <span class="medal silver" aria-hidden="true">2nd</span>
+                    <div>
+                      <h4>Logic <span class="no">invalid</span> · Outcome <span class="ok">correct</span></h4>
+                      <div class="traj-path"><span class="s-skip">Intent</span><i>→</i><span class="s-skip">Resource</span><i>→</i><span class="s-end">Policy: PAC</span></div>
+                    </div>
+                    <span class="lambda-tag">Right answer, wrong reason · softened penalty, <strong>λ = 2.0</strong></span>
+                  </div>
+                  <div class="card traj">
+                    <span class="medal bronze" aria-hidden="true">3rd</span>
+                    <div>
+                      <h4>Logic <span class="no">invalid</span> · Outcome <span class="no">wrong</span></h4>
+                      <div class="traj-path"><span class="s-skip">Intent</span><i>→</i><span class="s-ok">Resource ✓</span><i>→</i><span class="s-wrong">Policy: MTT ✗</span></div>
+                    </div>
+                    <span class="lambda-tag">Fundamental outcome error · full penalty, <strong>λ = 1.0</strong></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card tmdpo">
+              <div class="tmdpo-grid">
+                <div>
+                  <h4>Topology-Modulated DPO</h4>
+                  <p>
+                    Standard DPO penalizes every dispreferred trajectory equally. Treating outcome-correct but topology-invalid trajectories
+                    as hard negatives can erase accuracy learned from imitation. TM-DPO rescales each pair by a topology-dependent
+                    coefficient <em>λ<sub>i</sub></em>.
+                  </p>
+                  <div class="eq">
+                    <math display="block">
+                      <msub><mi>ℒ</mi><mtext>TM-DPO</mtext></msub><mo>=</mo><mo>−</mo><mi>log</mi><mo>⁡</mo><mi>σ</mi>
+                      <mrow><mo>(</mo>
+                        <mfrac><mi>β</mi><msub><mi>λ</mi><mi>i</mi></msub></mfrac>
+                        <mrow><mo>(</mo>
+                          <mi>log</mi><mo>⁡</mo><mfrac><mrow><msub><mi>π</mi><mi>θ</mi></msub><mo stretchy="false">(</mo><msub><mi>y</mi><mi>p</mi></msub><mo stretchy="false">)</mo></mrow><mrow><msub><mi>π</mi><mtext>ref</mtext></msub><mo stretchy="false">(</mo><msub><mi>y</mi><mi>p</mi></msub><mo stretchy="false">)</mo></mrow></mfrac>
+                          <mo>−</mo>
+                          <mi>log</mi><mo>⁡</mo><mfrac><mrow><msub><mi>π</mi><mi>θ</mi></msub><mo stretchy="false">(</mo><msub><mi>y</mi><mi>n</mi></msub><mo stretchy="false">)</mo></mrow><mrow><msub><mi>π</mi><mtext>ref</mtext></msub><mo stretchy="false">(</mo><msub><mi>y</mi><mi>n</mi></msub><mo stretchy="false">)</mo></mrow></mfrac>
+                        <mo>)</mo></mrow>
+                      <mo>)</mo></mrow>
+                    </math>
+                  </div>
+                  <div class="lambda-control">
+                    <label for="lambda">Topology coefficient λ <output id="lambda-out" for="lambda">2.0</output></label>
+                    <input id="lambda" type="range" min="1" max="4" step="0.1" value="2" />
+                    <small id="grad-readout">At zero margin, the gradient is 0.50× that of standard DPO.</small>
+                  </div>
+                </div>
+                <div class="tmdpo-plot">
+                  <svg id="tmdpo-plot" viewBox="0 0 460 300" role="img" aria-label="Loss and gradient magnitude as a function of the scaled preference margin, for standard DPO (lambda = 1) and TM-DPO with the selected lambda."></svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="effectiveness" class="research-section tinted" aria-labelledby="eff-title">
+        <div class="wide">
+          <div class="section-intro with-tabs reveal">
+            <div>
+              <div class="section-label"><span>06</span> RQ1 · EFFECTIVENESS</div>
+              <h2 id="eff-title">Can a 4B agent match 2.4T flagship models?</h2>
+              <p class="section-summary">
+                HolmeSRE-4B reaches 92.88% Macro-F1, ranking third of 13 models and within 0.83 points of the best 2.4T flagship, while
+                outperforming every Flash-tier and compact model.
+              </p>
+            </div>
+            <div class="tabs" role="tablist" aria-label="Effectiveness views">
+              <button role="tab" id="tab-r1" aria-controls="panel-r1" aria-selected="true">Root-cause F1</button>
+              <button role="tab" id="tab-r2" aria-controls="panel-r2" aria-selected="false" tabindex="-1">Macro-F1 ranking</button>
+              <button role="tab" id="tab-r3" aria-controls="panel-r3" aria-selected="false" tabindex="-1">Misdiagnosis control</button>
+            </div>
+          </div>
+          <div class="setup-strip reveal">
+            <span>332 held-out real failed events + 31 successful events</span>
+            <span>12 baselines, 9B–2.4T, in the same framework and tools</span>
+            <span>HolmeSRE trained only on synthesized failures</span>
+          </div>
+
+          <div role="tabpanel" id="panel-r1" aria-labelledby="tab-r1">
+            <div class="lb-wrap">
+              <table class="lb" id="lb">
+                <caption class="sr-only">Per-root-cause F1 (%) on 332 failed scheduling events</caption>
+              </table>
+            </div>
+            <div class="lb-legend">
+              <span>Click a column header to sort. Numbers in parentheses are event counts per pattern. Underline marks the best score.</span>
+              <span class="heat-scale"><label class="lb-toggle"><input type="checkbox" id="lb-heat" checked /> Heatmap</label><span>0</span><i></i><span>100</span></span>
+            </div>
+            <p class="chart-note">
+              The gap opens on <strong>Resource Provisioning Shortfall</strong> and <strong>Scheduling Policy Blockage</strong>, which require
+              correlating the specification with cluster states and policies: all compact models fall below 35% F1 on GRI and MTT, while
+              HolmeSRE stays above 86% on all patterns but one. Trained only on synthesized failures, it generalizes to real ones.
+            </p>
+          </div>
+
+          <div role="tabpanel" id="panel-r2" aria-labelledby="tab-r2" hidden>
+            <div class="card chart-card">
+              <div class="chart-head">
+                <div>
+                  <h4>Macro-F1 over ten root-cause patterns</h4>
+                  <p>Sorted from best to worst</p>
+                </div>
+                <div class="tier-legend" id="rank-legend"></div>
+              </div>
+              <div class="bars" id="rank-bars"></div>
+            </div>
+          </div>
+
+          <div role="tabpanel" id="panel-r3" aria-labelledby="tab-r3" hidden>
+            <div class="lb-wrap">
+              <table class="lb" id="md-table">
+                <caption class="sr-only">Event-level misdiagnosis control on 363 scheduling events</caption>
+              </table>
+            </div>
+            <p class="chart-note">
+              An event is predicted as failed whenever a model outputs a root-cause pattern. <strong>HolmeSRE reaches 100% precision and
+              recall</strong>: no spurious root cause on the 31 successful events, and every failed event flagged. Most compact and Flash-tier
+              baselines miss root causes on 11%–55% of failed events, which must then be escalated to SREs.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="efficiency" class="research-section" aria-labelledby="effi-title">
+        <div class="wide">
+          <div class="section-intro with-tabs reveal">
+            <div>
+              <div class="section-label"><span>07</span> RQ2 · EFFICIENCY</div>
+              <h2 id="effi-title">Flagship accuracy at a fraction of the latency</h2>
+              <p class="section-summary">
+                HolmeSRE needs the fewest interaction steps and the lowest latency, breaking the accuracy–efficiency trade-off.
+              </p>
+            </div>
+            <div class="tabs" role="group" aria-label="Chart range">
+              <button type="button" data-view="top" aria-pressed="true">Macro-F1 ≥ 80</button>
+              <button type="button" data-view="all" aria-pressed="false">All 13 models</button>
+            </div>
+          </div>
+          <div class="card chart-card reveal">
+            <div class="chart-head">
+              <div>
+                <h4 id="scatter-title">Macro-F1 vs. latency per troubleshooting run</h4>
+                <p>Top-left is better. Bubble area grows with parameter count. Hover a model for details.</p>
+              </div>
+              <div class="tier-legend" id="scatter-legend"></div>
+            </div>
+            <div class="scatter-wrap"><svg id="scatter" viewBox="0 0 1000 440" role="img" aria-label="Scatter plot of Macro-F1 against latency for 13 models."></svg></div>
+            <p class="chart-note">
+              MiMo-V2.6-Pro and Qwen-3.8-Max, the two flagships with comparable accuracy, take 90.00 s and 95.35 s per run through official
+              APIs, about <strong>16× slower</strong> than HolmeSRE. Compact models run at a similar per-step cost but need 24%–59% more steps;
+              imitation of expert trajectories teaches the retrieve-then-diagnose order instead of exploratory tool calls.
+              <button class="link-btn" type="button" data-lightbox="assets/figs/performance_time_tradeoff.png" data-caption="Figure 4. Accuracy–efficiency trade-off in diagnosis.">View the paper figure ↗</button>
+            </p>
+          </div>
+          <div class="eff-tiles">
+            <div class="card eff-tile accent reveal"><strong>5.77<small> s</small></strong><span>Mean latency per run, the lowest of all 13 models</span></div>
+            <div class="card eff-tile reveal"><strong>12.77</strong><span>Mean interaction steps, the fewest of all models</span></div>
+            <div class="card eff-tile reveal"><strong>~16<small>×</small></strong><span>Faster than flagship models with comparable accuracy</span></div>
+            <div class="card eff-tile reveal"><strong>~140<small>×</small></strong><span>Faster than the 13.67-minute hands-on SRE troubleshooting</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="ablation" class="research-section tinted" aria-labelledby="abl-title">
+        <div class="wide">
+          <div class="section-intro with-tabs reveal">
+            <div>
+              <div class="section-label"><span>08</span> RQ3 · ABLATION</div>
+              <h2 id="abl-title">What does each component contribute?</h2>
+              <p class="section-summary">
+                Both training stages are necessary, jointly lifting Macro-F1 from 32.45% to 92.88%, and the agent framework matters as much as the model.
+              </p>
+            </div>
+            <div class="tabs" role="tablist" aria-label="Ablation views">
+              <button role="tab" id="tab-a1" aria-controls="panel-a1" aria-selected="true">Training stages</button>
+              <button role="tab" id="tab-a2" aria-controls="panel-a2" aria-selected="false" tabindex="-1">Agent framework</button>
+            </div>
+          </div>
+
+          <div role="tabpanel" id="panel-a1" aria-labelledby="tab-a1">
+            <div class="abl-grid">
+              <div class="card chart-card">
+                <div class="chart-head">
+                  <div><h4>Macro-F1 and topology correctness</h4><p>Starting from the Qwen3-4B backbone</p></div>
+                </div>
+                <div class="stairs" id="stairs"></div>
+                <div class="abl-legend"><span><i></i>Macro-F1 (%)</span><span><i class="topo"></i>Topology correctness (%)</span></div>
+                <table class="mini-table" id="abl-table"></table>
+              </div>
+              <div class="abl-insights">
+                <div class="card insight">
+                  <span class="i-delta">+60.43</span>
+                  <h4>The full pipeline</h4>
+                  <p>From the Qwen3-4B backbone (32.45%) to HolmeSRE (92.88%). The backbone scores 0% F1 on ER, CDU, MTT and PNU.</p>
+                </div>
+                <div class="card insight">
+                  <span class="i-delta" style="background: var(--bad-bg); color: var(--bad)">−22.98 w/o</span>
+                  <h4>Imitation fine-tuning lays the foundation</h4>
+                  <p>Without it, Macro-F1 drops to 69.90% and every Scheduling Policy Blockage pattern stays below 54% F1: preference learning alone cannot instill the long procedures needed at the deepest topology layer.</p>
+                </div>
+                <div class="card insight">
+                  <span class="i-delta">+4.38</span>
+                  <h4>TM-DPO sharpens the reasoning</h4>
+                  <p>Gains concentrate on GRI (45.71% → 76.19%), which can be concluded only after all other resource checks are ruled out. Topology correctness rises from 80.42% to 84.64%.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div role="tabpanel" id="panel-a2" aria-labelledby="tab-a2" hidden>
+            <div class="framework-grid">
+              <div class="card chart-card">
+                <div class="chart-head">
+                  <div><h4>Same model, different agent framework</h4><p>Qwen-3.8-Flash in OpenCode vs. in the HolmeSRE framework</p></div>
+                </div>
+                <div class="vs-key">
+                  <span><i style="background: #b9c2cc"></i>Generic coding agent (OpenCode)</span>
+                  <span><i style="background: var(--navy-bright)"></i>HolmeSRE framework</span>
+                </div>
+                <div id="vs-metrics"></div>
+              </div>
+              <div class="abl-insights">
+                <div class="card insight">
+                  <span class="i-delta" style="background: var(--bad-bg); color: var(--bad)">−68.95</span>
+                  <h4>Macro-F1 collapses from 90.96% to 22.01%</h4>
+                  <p>Without the Logical Context Mechanism and deterministic Diagnosis checks, the agent must read raw artifacts and verify constraints by itself, which overwhelms both its context and its reasoning.</p>
+                </div>
+                <div class="card insight">
+                  <span class="i-delta" style="background: var(--bad-bg); color: var(--bad)">8.2×</span>
+                  <h4>More input tokens, 12× the latency</h4>
+                  <p>OpenCode consumes 53,208 input tokens and 800 s per run versus 6,494 tokens and 66.86 s in the HolmeSRE framework, and nearly hits the 30-step cap.</p>
+                </div>
+                <div class="card insight">
+                  <span class="i-delta">Lesson</span>
+                  <h4>Design the interface before scaling the model</h4>
+                  <p>A 4B model with task-specific tool actions rivals 2.4T flagship models, while a strong model in a generic agent fails.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="deployment" class="research-section" aria-labelledby="dep-title">
+        <div class="wide">
+          <div class="section-intro reveal">
+            <div class="section-label"><span>09</span> RQ4 · DEPLOYMENT</div>
+            <h2 id="dep-title">Does HolmeSRE help SREs in production?</h2>
+            <p class="section-summary">
+              Integrated as a diagnostic assistant into the scheduling-failure workflow of Platform-X for one month. HolmeSRE returns the root
+              cause together with its investigation trajectory for SRE review.
+            </p>
+          </div>
+          <div class="card deploy-meta reveal">
+            <div><strong>1 month</strong><span>Production deployment</span></div>
+            <div><strong>8 × H20</strong><span>A single serving server</span></div>
+            <div><strong>Hundreds / week</strong><span>All reported failed events</span></div>
+            <div><strong>94 events</strong><span>One sampled week for comparison</span></div>
+          </div>
+          <div class="modes" id="modes">
+            <div class="card mode reveal" style="--c: #b9c2cc">
+              <div class="m-who"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3" /><circle cx="17" cy="9" r="2.4" /><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5M14.5 14.6c.8-.4 1.6-.6 2.5-.6 2.2 0 3.8 1.5 4.3 4" /></svg>Manual troubleshooting</div>
+              <div class="m-time"><strong>1047.62</strong><span>s / event</span></div>
+              <div class="bar-track"><div class="bar-fill" data-w="100"></div></div>
+              <dl>
+                <div><dt>Who</dt><dd>Ad hoc group of 5+ senior SREs</dd></div>
+                <div><dt>Speed vs. manual</dt><dd>1.0×</dd></div>
+              </dl>
+              <p>Complex scheduling failures routinely pull in several senior engineers.</p>
+            </div>
+            <div class="card mode reveal" style="--c: var(--navy-bright)">
+              <div class="m-who"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="7" width="14" height="11" rx="3" /><path d="M12 7V4M9 12h.01M15 12h.01M9.5 15h5" /></svg>Autonomous HolmeSRE</div>
+              <div class="m-time"><strong>9.24</strong><span>s / event</span></div>
+              <div class="bar-track"><div class="bar-fill" data-w="0.88"></div></div>
+              <dl>
+                <div><dt>Macro-F1</dt><dd>74.48%</dd></div>
+                <div><dt>Includes</dt><dd>Fetching production data</dd></div>
+              </dl>
+              <p>Errors concentrate on complex resource and constraint failures (28.57%–57.14% F1):
+                <span class="weak-patterns"><span>CDU</span><span>PAC</span><span>GRI</span><span>MTT</span></span>
+              </p>
+            </div>
+            <div class="card mode best reveal" style="--c: var(--rust)">
+              <span class="ribbon">DEPLOYED MODE</span>
+              <div class="m-who"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="8" r="3" /><path d="M2.5 19c.6-3.2 2.8-5 5.5-5 1.6 0 3 .6 4 1.7" /><rect x="14" y="10" width="8" height="7" rx="2" /><path d="M18 10V8.5" /></svg>SREs assisted by HolmeSRE</div>
+              <div class="m-time"><strong>180.49</strong><span>s / event</span></div>
+              <div class="bar-track"><div class="bar-fill" data-w="17.2"></div></div>
+              <dl>
+                <div><dt>Root causes identified</dt><dd>94 / 94 (100%)</dd></div>
+                <div><dt>Speed vs. manual</dt><dd>5.8× faster</dd></div>
+              </dl>
+              <p>Explicit investigation trajectories make verification fast. HolmeSRE <strong>augments rather than replaces</strong> on-call SREs.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="lessons" class="research-section tinted" aria-labelledby="lessons-title">
+        <div class="wide">
+          <div class="section-intro reveal">
+            <div class="section-label"><span>10</span> LESSONS LEARNED</div>
+            <h2 id="lessons-title">What we would tell the next team</h2>
+            <p class="section-summary">Practical lessons for building reliable troubleshooting automation in hyperscale AI infrastructure.</p>
+          </div>
+          <div class="lesson-grid">
+            <article class="card lesson reveal">
+              <span class="l-idx">01</span>
+              <h3>Diagnose constraints, not capacity</h3>
+              <p>Scheduling Policy Blockage (45.6%) outnumbers resource shortfalls (33.1%), as isolation-driven constraints render healthy capacity logically unreachable. Audit scheduling constraints before adding capacity.</p>
+            </article>
+            <article class="card lesson reveal">
+              <span class="l-idx">02</span>
+              <h3>Design the interface before scaling the model</h3>
+              <p>With over 10 million characters of context per event, raw artifacts overwhelm any model. In a generic coding agent the same model falls from 90.96% to 22.01%, while a 4B model with task-specific actions rivals 2.4T flagships.</p>
+            </article>
+            <article class="card lesson reveal">
+              <span class="l-idx">03</span>
+              <h3>Learn the procedure, not just the answer</h3>
+              <p>By imitating expert trajectories, a compact 4B model learns troubleshooting from synthesized failures alone and applies it to real ones. Outcome-only supervision still rewards right answers with wrong reasons, so topology preferences keep intermediate reasoning valid.</p>
+            </article>
+            <article class="card lesson reveal">
+              <span class="l-idx">04</span>
+              <h3>Verifiability drives adoption</h3>
+              <p>Autonomous diagnosis struggles with complex resource and constraint failures, but SREs reviewing explicit trajectories reach 100% accuracy 5.8× faster. A verifiable assistant beats an opaque one, provided failure synthesis keeps pace with evolving policies.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="conclusion" class="research-section" aria-labelledby="conclusion-title">
+        <div class="wide">
+          <div class="section-intro reveal">
+            <div class="section-label"><span>11</span> CONCLUSION</div>
+            <h2 id="conclusion-title">Conclusion</h2>
+          </div>
+          <p class="conclusion-text reveal">
+            Scheduling failure diagnosis is hard not because resources are scarce, but because schedulability is shaped by coupled policy
+            constraints, massive heterogeneous context, and recurring failures that overwhelm manual troubleshooting. HolmeSRE answers with
+            iterative evidence retrieval, deterministic verification, a learned troubleshooting procedure, and topology-aligned reasoning.
+          </p>
+          <div class="conclusion-grid">
+            <div class="conclusion-card reveal">
+              <h3>Understand the Failures</h3>
+              <p>169 production failures reveal three failure types and ten root-cause patterns, dominated by scheduling-policy constraints rather than capacity.</p>
+            </div>
+            <div class="conclusion-card reveal">
+              <h3>Troubleshoot Like an SRE</h3>
+              <p>HolmeSRE-4B reaches 92.88% Macro-F1 on 332 held-out real failures, on par with 2.4T flagship models at 16× lower latency.</p>
+            </div>
+            <div class="conclusion-card reveal">
+              <h3>Help in Production</h3>
+              <p>In a one-month deployment, SREs assisted by HolmeSRE identified every root cause while troubleshooting 5.8× faster.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wide footer-inner">
+        <span class="footer-brand"><img src="assets/logos/HolmeSRE.png" alt="" width="26" height="26" /><span class="gradient-text">HolmeSRE</span></span>
+        <span>2026</span>
+        <a class="to-top" href="#top">Back to top ↑</a>
+      </div>
+    </footer>
+
+    <dialog class="lightbox" id="lightbox" aria-label="Enlarged figure">
+      <img id="lightbox-img" src="" alt="" />
+      <div class="lightbox-bar">
+        <span id="lightbox-caption"></span>
+        <button class="tool-btn" type="button" id="lightbox-close">Close <kbd>Esc</kbd></button>
+      </div>
+    </dialog>
+    <div class="tooltip" id="tooltip" role="tooltip"></div>
+  </body>
+</html>
